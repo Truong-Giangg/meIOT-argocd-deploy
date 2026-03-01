@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations: {}
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  name: core-api-meiot
+  namespace: argocd
+spec:
+  destination:
+    namespace: meiot
+    server: https://kubernetes.default.svc
+  project: meiot
+  sources:
+  - repoURL: oci://meiot.azurecr.io/meiot-helm-chart
+    targetRevision: 1.0.1
+    helm:
+      valueFiles:
+      - $gitopsRepo/helm/core-api/values.yaml
+      releaseName: core-api
+    chart: dot-net-chart
+  - repoURL: 'https://github.com/Truong-Giangg/meIOT-argocd-deploy.git'
+    path: helm/core-api
+    targetRevision: meiot
+    ref: gitopsRepo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

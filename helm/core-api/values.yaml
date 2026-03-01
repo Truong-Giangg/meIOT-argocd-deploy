@@ -1,0 +1,108 @@
+# Default values for meIOT Core API
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+replicaCount: 1
+maxSurge: 1
+maxUnavailable: 0
+
+image:
+  repository: meiot.azurecr.io/meiot-core-api
+  tag: v1.0
+  pullPolicy: IfNotPresent
+
+externalSecret:
+  enabled: true
+  secretStoreName: vault-backend
+  refreshInterval: 300s
+  remoteKeys:
+    mongoUser: meiot-core-api-mongo-user
+    mongoPass: meiot-core-api-mongo-pass 
+
+
+
+networkPolicy:
+  enabled: false
+  # Ingress controls traffic INTO your app Pods
+  ingress:
+    enabled: true
+    namespaceSelectors: # (list<map>) e.g., [{ kubernetes.io/metadata.name: default }]
+      - platform: dxpro
+    podSelectors: # (list<map>) Same-namespace Pod label selectors.
+      - platform: dxpro
+      - app.kubernetes.io/name: ingress-nginx
+      - role: frontend
+      - role: backend
+      - role: data
+    ipBlocks: [] # (list) [{ cidr: 10.0.0.0/8, except: [10.0.5.0/24] }]
+    ports: # (list) Allowed incoming ports.
+      - port: 80
+        protocol: TCP
+
+imagePullSecrets:
+  - name: azurecr-secret
+nameOverride: ""
+fullnameOverride: "core-api"
+
+serviceAccount:
+  create: false
+
+podLabels:
+  platform: nexus
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  grpc:
+    enabled: false
+    targetPort: 5002
+    port: 5002
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: core-api.meiot.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: core-api-tls
+      hosts:
+        - core-api.meiot.local
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 6
+  targetMemoryUtilizationPercentage: 75
+
+nodeSelector: {}
+
+affinity: {}
+
+tolerations: []
+
+hostAliases: {}
+
+configFile: |
+  {
+    "ConnectionStrings": {
+        "MongoDb": "mongodb://{{ .mongoUser }}:{{ .mongoPass }}@mongodb-0.mongodb-headless.meiot.svc.cluster.local.:27017/?replicaSet=rs0&readPreference=secondaryPreferred"
+    },
+    "Kafka": {
+        "BootstrapServers": "kafka.meiot.svc.cluster.local.:9092"
+    }
+  }
