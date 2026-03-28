@@ -13,7 +13,7 @@ loki:
   gateway:
     enabled: true
     nginxConfig:
-      resolver: "10.43.0.10 valid=30s"
+      resolver: "127.0.0.11 valid=30s"
   # This creates the PVCs using Longhorn
   minio:
     enabled: true # Loki distributed often uses a local minio for simplicity
@@ -30,7 +30,7 @@ mimir:
   enabled: true
   gateway:
     nginxConfig:
-      resolver: "10.43.0.10 valid=30s"
+      resolver: "127.0.0.11 valid=30s"
   # Mimir components that need disk space
   ingester:
     persistentVolume:
