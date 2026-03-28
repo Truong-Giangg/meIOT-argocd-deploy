@@ -1,0 +1,80 @@
+# Global settings to use Longhorn for all persistence
+global:
+  clusterDomain: cluster.local
+
+loki:
+  enabled: true
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem # Loki uses the PVC to store chunks here
+  # This creates the PVCs using Longhorn
+  minio:
+    enabled: true # Loki distributed often uses a local minio for simplicity
+    persistence:
+      storageClass: "longhorn"
+      size: 5Gi
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: "longhorn"
+      size: 5Gi
+
+mimir:
+  enabled: true
+  mimir:
+    config:
+      ingester:
+        ring:
+          replication_factor: 1
+  # Mimir components that need disk space
+  ingester:
+    persistentVolume:
+      storageClass: "longhorn"
+      size: 5Gi
+  store_gateway:
+    persistentVolume:
+      storageClass: "longhorn"
+      size: 5Gi
+
+grafana:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClass: "longhorn"
+    size: 3Gi
+  admin:
+    existingSecret: "grafana-admin-credentials"
+    userKey: "admin-user"
+    passwordKey: "admin-password"
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Mimir
+          type: prometheus
+          url: http://lgtm-distributed-mimir-gateway.observability.svc:8080/prometheus
+          isDefault: true
+        - name: Loki
+          type: loki
+          url: http://lgtm-distributed-loki-gateway.observability.svc:3100
+
+# Alloy Collector (Scraping Node Metrics)
+alloy:
+  enabled: true
+  alloy:
+    config: |
+      prometheus.exporter.unix "node_stats" { }
+      
+      prometheus.scrape "metrics_integrations" {
+        targets    = prometheus.exporter.unix.node_stats.targets
+        forward_to = [prometheus.remote_write.mimir.receiver]
+      }
+
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://lgtm-distributed-mimir-gateway.observability.svc:8080/api/v1/push"
+        }
+      }
