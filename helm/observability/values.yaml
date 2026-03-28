@@ -12,16 +12,8 @@ loki:
       type: filesystem # Loki uses the PVC to store chunks here
   gateway:
     enabled: true
-    extraVolumes:
-      - name: dns-fix
-        configMap:
-          name: gateway-dns-fix
-    extraVolumeMounts:
-      - name: dns-fix
-        mountPath: /docker-entrypoint.d/resolver.conf
-        subPath: resolver.conf
     nginxConfig:
-      resolver: "127.0.0.11 valid=30s"
+      resolver: "kube-dns.kube-system.svc.cluster.local valid=30s"
   # This creates the PVCs using Longhorn
   minio:
     enabled: true # Loki distributed often uses a local minio for simplicity
@@ -37,17 +29,8 @@ loki:
 mimir:
   enabled: true
   gateway:
-    enabled: true
-    extraVolumes:
-      - name: dns-fix
-        configMap:
-          name: gateway-dns-fix
-    extraVolumeMounts:
-      - name: dns-fix
-        mountPath: /docker-entrypoint.d/resolver.conf
-        subPath: resolver.conf
     nginxConfig:
-      resolver: "127.0.0.11 valid=30s"
+      resolver: "kube-dns.kube-system.svc.cluster.local valid=30s"
   # Mimir components that need disk space
   ingester:
     persistentVolume:
