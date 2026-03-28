@@ -24,11 +24,6 @@ loki:
 
 mimir:
   enabled: true
-  mimir:
-    config:
-      ingester:
-        ring:
-          replication_factor: 1
   # Mimir components that need disk space
   ingester:
     persistentVolume:
