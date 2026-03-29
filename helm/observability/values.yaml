@@ -1,6 +1,7 @@
 # Global settings to use Longhorn for all persistence
 global:
   clusterDomain: cluster.local
+  dnsService: rke2-coredns-rke2-coredns
 
 loki:
   enabled: true
@@ -12,8 +13,6 @@ loki:
       type: filesystem # Loki uses the PVC to store chunks here
   gateway:
     enabled: true
-    nginxConfig:
-      resolver: "rke2-coredns-rke2-coredns.kube-system.svc.cluster.local valid=30s"
   # This creates the PVCs using Longhorn
   minio:
     enabled: true # Loki distributed often uses a local minio for simplicity
@@ -30,9 +29,6 @@ mimir:
   enabled: true
   gateway:
     enabled: true
-    nginx:
-      config:
-        resolver: "rke2-coredns-rke2-coredns.kube-system.svc.cluster.local valid=30s"
   # Mimir components that need disk space
   ingester:
     persistentVolume:
