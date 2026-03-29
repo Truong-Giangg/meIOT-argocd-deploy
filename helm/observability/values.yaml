@@ -1,6 +1,47 @@
-# Global settings
+# Global settings to use Longhorn for all persistence
 global:
   clusterDomain: cluster.local
+
+loki:
+  enabled: true
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem # Loki uses the PVC to store chunks here
+  gateway:
+    enabled: true
+    nginxConfig:
+      resolver: "10.43.0.10 valid=30s"
+  # This creates the PVCs using Longhorn
+  minio:
+    enabled: true # Loki distributed often uses a local minio for simplicity
+    persistence:
+      storageClass: "longhorn"
+      size: 5Gi
+  singleBinary:
+    persistence:
+      enabled: true
+      storageClass: "longhorn"
+      size: 5Gi
+
+mimir:
+  enabled: true
+  gateway:
+    enabled: true
+    nginxConfig:
+      # Use the specific RKE2 service name + namespace
+      resolver: "10.43.0.10 valid=30s"
+  # Mimir components that need disk space
+  ingester:
+    persistentVolume:
+      storageClass: "longhorn"
+      size: 5Gi
+  store_gateway:
+    persistentVolume:
+      storageClass: "longhorn"
+      size: 5Gi
 
 grafana:
   enabled: true
@@ -11,227 +52,33 @@ grafana:
   admin:
     existingSecret: "grafana-admin-credentials"
     userKey: "admin-user"
-    password_key: "admin-password"
-  sidecar:
-    dashboards:
-      enabled: true
+    passwordKey: "admin-password"
   datasources:
     datasources.yaml:
       apiVersion: 1
       datasources:
-        - name: Loki
-          uid: loki
-          type: loki
-          url: http://lgtm-distributed-loki-gateway
-          isDefault: false
         - name: Mimir
-          uid: prom
           type: prometheus
-          url: http://lgtm-distributed-mimir-nginx/prometheus
+          url: http://lgtm-distributed-mimir-gateway.observability.svc:8080/prometheus
           isDefault: true
-        - name: Tempo
-          uid: tempo
-          type: tempo
-          url: http://lgtm-distributed-tempo-query-frontend:3100
-          isDefault: false
-          jsonData:
-            tracesToLogsV2:
-              datasourceUid: loki
-            lokiSearch:
-              datasourceUid: loki
-            tracesToMetrics:
-              datasourceUid: prom
-            serviceMap:
-              datasourceUid: prom
+        - name: Loki
+          type: loki
+          url: http://lgtm-distributed-loki-gateway.observability.svc:3100
 
-loki:
-  enabled: true
-  commonConfig:
-    replication_factor: 1
-  loki:
-    auth_enabled: false
-    server:
-      grpc_server_max_recv_msg_size: 104857600
-      grpc_server_max_send_msg_size: 104857600
-    schemaConfig:
-      configs:
-        - from: "2020-09-07"
-          store: tsdb
-          object_store: aws
-          schema: v13
-          index:
-            prefix: loki_index_
-            period: 24h
-    storageConfig:
-      tsdb_shipper:
-        shared_store: s3
-        active_index_directory: /var/loki/index
-        cache_location: /var/loki/cache
-        cache_ttl: 168h
-      aws:
-        s3: http://lgtm:supersecret@lgtm-minio:9000/loki
-        s3forcepathstyle: true
-        endpoint: lgtm-minio:9000
-        insecure: true
-  gateway:
-    enabled: true
-    nginxConfig:
-      resolver: "10.43.0.10 valid=30s"
-
-mimir:
-  enabled: true
-  server:
-    grpc_server_max_concurrent_streams: 1000
-    grpc_server_max_recv_msg_size: 104857600
-    grpc_server_max_send_msg_size: 104857600
-  structuredConfig:
-    limits:
-      max_global_series_per_user: 10000000
-      ingestion_rate: 150000
-      ingestion_burst_size: 300000
-  metaMonitoring:
-    dashboards:
-      enabled: true
-    serviceMonitor:
-      enabled: true
-      labels:
-        release: prometheus-operator
-    prometheusRule:
-      enabled: true
-      mimirAlerts: true
-      mimirRules: true
-      labels:
-        release: prometheus-operator
-  compactor:
-    resources:
-      requests:
-        cpu: 20m
-  distributor:
-    resources:
-      requests:
-        cpu: 20m
-  ingester:
-    replicas: 2
-    zoneAwareReplication:
-      enabled: false
-    resources:
-      requests:
-        cpu: 20m
-    persistentVolume:
-      storageClass: "longhorn"
-      size: 5Gi
-  overrides_exporter:
-    resources:
-      requests:
-        cpu: 20m
-  querier:
-    replicas: 1
-    resources:
-      requests:
-        cpu: 20m
-  query_frontend:
-    resources:
-      requests:
-        cpu: 20m
-  query_scheduler:
-    replicas: 1
-    resources:
-      requests:
-        cpu: 20m
-  store_gateway:
-    zoneAwareReplication:
-      enabled: false
-    resources:
-      requests:
-        cpu: 20m
-    persistentVolume:
-      storageClass: "longhorn"
-      size: 5Gi
-  minio:
-    enabled: true
-    rootPassword: supersecret
-    rootUser: lgtm
-    persistence:
-      storageClass: "longhorn"
-      size: 20Gi 
-    buckets:
-      - name: mimir-tsdb
-        policy: none
-        purge: false
-      - name: mimir-ruler
-        policy: none
-        purge: false
-      - name: loki
-        policy: none
-        purge: false
-      - name: tempo
-        policy: none
-        purge: false
-  rollout_operator:
-    resources:
-      requests:
-        cpu: 20m
-  ruler:
-    enabled: true
-  alertmanager:
-    enabled: false
-
-tempo:
-  enabled: true
-  metaMonitoring:
-    serviceMonitor:
-      enabled: true
-      labels:
-        release: prometheus-operator
-    prometheusRule:
-      enabled: true
-      labels:
-        release: prometheus-operator
-  storage:
-    trace:
-      backend: s3
-      s3:
-        access_key: lgtm
-        bucket: tempo
-        prefix: traces
-        endpoint: lgtm-minio:9000
-        insecure: true
-        secret_key: supersecret
-  ingester:
-    replicas: 1
-    config:
-      replication_factor: 1
-  traces:
-    otlp:
-      grpc:
-        enabled: true
-      http:
-        enabled: true
-  metricsGenerator:
-    enabled: true
-    config:
-      storage:
-        remote_write:
-          - url: http://lgtm-distributed-mimir-nginx/api/v1/push
-            send_exemplars: true
-  global_overrides:
-    defaults:
-      metrics_generator:
-        processors:
-          - service-graphs
-          - span-metrics
-
+# Alloy Collector (Scraping Node Metrics)
 alloy:
   enabled: true
   alloy:
     config: |
       prometheus.exporter.unix "node_stats" { }
+      
       prometheus.scrape "metrics_integrations" {
         targets    = prometheus.exporter.unix.node_stats.targets
         forward_to = [prometheus.remote_write.mimir.receiver]
       }
+
       prometheus.remote_write "mimir" {
         endpoint {
-          url = "http://lgtm-distributed-mimir-nginx/api/v1/push"
+          url = "http://lgtm-distributed-mimir-gateway.observability.svc:8080/api/v1/push"
         }
       }
