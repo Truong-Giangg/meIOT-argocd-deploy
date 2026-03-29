@@ -4,7 +4,6 @@ global:
 
 grafana:
   enabled: true
-  # Retaining your original Longhorn persistence for the Grafana DB
   persistence:
     enabled: true
     storageClass: "longhorn"
@@ -12,7 +11,7 @@ grafana:
   admin:
     existingSecret: "grafana-admin-credentials"
     userKey: "admin-user"
-    passwordKey: "admin-password"
+    password_key: "admin-password"
   sidecar:
     dashboards:
       enabled: true
@@ -23,17 +22,17 @@ grafana:
         - name: Loki
           uid: loki
           type: loki
-          url: http://{{ .Release.Name }}-loki-gateway
+          url: http://lgtm-distributed-loki-gateway
           isDefault: false
         - name: Mimir
           uid: prom
           type: prometheus
-          url: http://{{ .Release.Name }}-mimir-nginx/prometheus
+          url: http://lgtm-distributed-mimir-nginx/prometheus
           isDefault: true
         - name: Tempo
           uid: tempo
           type: tempo
-          url: http://{{ .Release.Name }}-tempo-query-frontend:3100
+          url: http://lgtm-distributed-tempo-query-frontend:3100
           isDefault: false
           jsonData:
             tracesToLogsV2:
@@ -118,7 +117,6 @@ mimir:
     resources:
       requests:
         cpu: 20m
-    # Retaining Longhorn for ingester WAL/TSDB head
     persistentVolume:
       storageClass: "longhorn"
       size: 5Gi
@@ -153,7 +151,6 @@ mimir:
     enabled: true
     rootPassword: supersecret
     rootUser: lgtm
-    # Using Longhorn to back the MinIO instance where all data lives
     persistence:
       storageClass: "longhorn"
       size: 20Gi 
@@ -215,7 +212,7 @@ tempo:
     config:
       storage:
         remote_write:
-          - url: http://lgtm-mimir-nginx/api/v1/push
+          - url: http://lgtm-distributed-mimir-nginx/api/v1/push
             send_exemplars: true
   global_overrides:
     defaults:
@@ -224,7 +221,6 @@ tempo:
           - service-graphs
           - span-metrics
 
-# Alloy Collector (Scraping Node Metrics)
 alloy:
   enabled: true
   alloy:
@@ -236,6 +232,6 @@ alloy:
       }
       prometheus.remote_write "mimir" {
         endpoint {
-          url = "http://lgtm-mimir-nginx/api/v1/push"
+          url = "http://lgtm-distributed-mimir-nginx/api/v1/push"
         }
       }
