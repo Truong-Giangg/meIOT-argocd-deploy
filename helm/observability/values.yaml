@@ -29,11 +29,10 @@ loki:
 mimir:
   enabled: true
   gateway:
-    enabled: true
-    # Mimir's chart often requires this specific nesting for the resolver fix
     nginx:
-      config:
-        resolver: "127.0.0.11 valid=30s"
+      enabled: true
+      config: |
+        resolver 127.0.0.11 valid=30s;
   # Mimir components that need disk space
   ingester:
     persistentVolume:
