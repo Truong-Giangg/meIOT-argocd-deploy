@@ -9,14 +9,18 @@ spec:
     server: https://kubernetes.default.svc
     namespace: observability
   sources:
-    # Source 1: The Grafana Helm Repository
     - repoURL: https://grafana.github.io/helm-charts
       chart: lgtm-distributed
       targetRevision: 2.1.0
       helm:
         valueFiles:
           - $gitRepo/helm/observability/values.yaml
-    # Source 2: Your Private Git Repo for values
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: alloy
+      targetRevision: 0.2.0
+      helm:
+        valueFiles:
+          - $gitRepo/helm/observability/values.yaml
     - repoURL: https://github.com/Truong-Giangg/meIOT-argocd-deploy.git
       targetRevision: meiot-shared-prd
       ref: gitRepo

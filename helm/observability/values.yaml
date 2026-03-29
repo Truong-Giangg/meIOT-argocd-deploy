@@ -63,7 +63,6 @@ grafana:
 
 # Alloy Collector (Scraping Node Metrics)
 alloy:
-  enabled: true
   alloy:
     config: |
       prometheus.exporter.unix "node_stats" { }
@@ -75,6 +74,6 @@ alloy:
 
       prometheus.remote_write "mimir" {
         endpoint {
-          url = "http://lgtm-distributed-mimir-gateway.observability.svc:8080/api/v1/push"
+          url = "http://lgtm-stack-mimir-nginx.observability.svc:80/api/v1/push"
         }
       }
