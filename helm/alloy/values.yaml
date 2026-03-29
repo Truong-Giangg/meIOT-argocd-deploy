@@ -5,16 +5,18 @@ global:
 
 # Alloy Collector (Scraping Node Metrics)
 alloy:
-  config: |
-    prometheus.exporter.unix "node_stats" { }
-    
-    prometheus.scrape "metrics_integrations" {
-      targets    = prometheus.exporter.unix.node_stats.targets
-      forward_to = [prometheus.remote_write.mimir.receiver]
-    }
-
-    prometheus.remote_write "mimir" {
-      endpoint {
-        url = "http://lgtm-stack-mimir-nginx.observability.svc:80/api/v1/push"
+  configMap:
+    create: true
+    content: |
+      prometheus.exporter.unix "node_stats" { }
+      
+      prometheus.scrape "metrics_integrations" {
+        targets    = prometheus.exporter.unix.node_stats.targets
+        forward_to = [prometheus.remote_write.mimir.receiver]
       }
-    }
+
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://lgtm-stack-mimir-nginx.observability.svc:80/api/v1/push"
+        }
+      }
