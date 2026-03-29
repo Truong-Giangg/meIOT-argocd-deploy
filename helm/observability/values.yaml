@@ -28,9 +28,9 @@ loki:
 
 mimir:
   enabled: true
-  nginx:
+  gateway:
     enabled: true
-    config:
+    nginxConfig:
       resolver: "127.0.0.11 valid=30s"
   # Mimir components that need disk space
   ingester:
