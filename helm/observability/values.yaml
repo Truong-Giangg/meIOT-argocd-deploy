@@ -19,12 +19,12 @@ loki:
     enabled: true # Loki distributed often uses a local minio for simplicity
     persistence:
       storageClass: "longhorn"
-      size: 5Gi
+      size: 3Gi
   singleBinary:
     persistence:
       enabled: true
       storageClass: "longhorn"
-      size: 5Gi
+      size: 3Gi
 
 mimir:
   enabled: true
@@ -37,11 +37,11 @@ mimir:
   ingester:
     persistentVolume:
       storageClass: "longhorn"
-      size: 5Gi
+      size: 3Gi
   store_gateway:
     persistentVolume:
       storageClass: "longhorn"
-      size: 5Gi
+      size: 3Gi
 
 grafana:
   enabled: true
