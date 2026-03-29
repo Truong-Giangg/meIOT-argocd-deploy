@@ -30,16 +30,12 @@ mimir:
   enabled: true
   gateway:
     enabled: true
+    # This is the path for the newer Mimir-distributed sub-charts
     nginx:
-      config:
-        resolver: "127.0.0.11 valid=30s"
-    # Attempt 2: Older chart path
-    nginxConfig:
       resolver: "127.0.0.11 valid=30s"
-    # Attempt 3: Force it via the Mimir-specific internal config
-    mimir:
-      config:
-        resolver: "127.0.0.11 valid=30s"
+    # This is for versions that use a dedicated config block
+    config:
+      resolver: "127.0.0.11 valid=30s"
   # Mimir components that need disk space
   ingester:
     persistentVolume:
