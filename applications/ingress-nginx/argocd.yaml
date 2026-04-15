@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  destination:
+    namespace: ingress-nginx
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+    # Source 1: The ingress-nginx Helm Repository
+    - repoURL: https://kubernetes.github.io/ingress-nginx
+      targetRevision: 4.8.0
+      helm:
+        releaseName: nginx-ingress
+        valueFiles:
+          - $gitRepo/helm/ingress-nginx/values.yaml
+      chart: ingress-nginx
+    # Source 2: Your Private Git Repo for values
+    - repoURL: 'https://github.com/Truong-Giangg/meIOT-argocd-deploy.git'
+      path: helm/ingress-nginx
+      targetRevision: meiot
+      ref: gitRepo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
