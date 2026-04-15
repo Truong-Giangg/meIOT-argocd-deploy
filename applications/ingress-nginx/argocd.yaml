@@ -20,7 +20,7 @@ spec:
     # Source 2: Your Private Git Repo for values
     - repoURL: 'https://github.com/Truong-Giangg/meIOT-argocd-deploy.git'
       path: helm/ingress-nginx
-      targetRevision: meiot
+      targetRevision: meiot-shared-prd
       ref: gitRepo
   syncPolicy:
     automated:
