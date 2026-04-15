@@ -2,6 +2,12 @@ controller:
   service:
     type: LoadBalancer
     externalTrafficPolicy: Local
+    ports:
+      http: 80
+      https: 8443
+    targetPorts:
+      http: http
+      https: https
   metrics:
     enabled: true
   podAnnotations:
