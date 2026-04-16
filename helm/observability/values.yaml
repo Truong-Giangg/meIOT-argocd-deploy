@@ -41,6 +41,11 @@ mimir:
 
 grafana:
   enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.meiot.site
   persistence:
     enabled: true
     storageClass: "longhorn"
