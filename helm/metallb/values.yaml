@@ -1,0 +1,3 @@
+# MetalLB values file
+# It's okay to leave this mostly empty as standard defaults work well,
+# or customize options (e.g. log levels, node selectors).

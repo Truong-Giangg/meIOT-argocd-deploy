@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+  namespace: argocd
+spec:
+  destination:
+    namespace: metallb-system
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+    - repoURL: https://metallb.github.io/metallb
+      targetRevision: 0.15.3
+      helm:
+        releaseName: metallb
+        valueFiles:
+          - $gitRepo/helm/metallb/values.yaml
+      chart: metallb
+    - repoURL: 'https://github.com/Truong-Giangg/meIOT-argocd-deploy.git'
+      path: helm/metallb
+      targetRevision: meiot-shared-prd
+      ref: gitRepo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
