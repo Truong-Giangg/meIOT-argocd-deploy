@@ -8,3 +8,9 @@ ingress:
 
 preUpgradeChecker:
   jobEnabled: false
+
+persistence:
+  defaultClassReplicaCount: 2
+
+defaultSettings:
+  defaultReplicaCount: "2"
