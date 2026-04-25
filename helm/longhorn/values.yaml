@@ -1,0 +1,7 @@
+# Longhorn values file
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  host: longhorn.meiot.site
+  path: /
+  pathType: ImplementationSpecific
