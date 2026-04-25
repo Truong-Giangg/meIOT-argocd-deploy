@@ -5,3 +5,6 @@ ingress:
   host: longhorn.meiot.site
   path: /
   pathType: ImplementationSpecific
+
+preUpgradeChecker:
+  jobEnabled: false
