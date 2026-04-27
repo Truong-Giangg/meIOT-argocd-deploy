@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rancher
+  namespace: argocd
+spec:
+  destination:
+    namespace: cattle-system
+    server: https://kubernetes.default.svc
+  project: default
+  sources:
+    - repoURL: https://releases.rancher.com/server-charts/stable
+      targetRevision: 2.9.3
+      chart: rancher
+      helm:
+        releaseName: rancher
+        valueFiles:
+          - $gitRepo/helm/rancher/values.yaml
+    - repoURL: 'https://github.com/Truong-Giangg/meIOT-argocd-deploy.git'
+      path: helm/rancher
+      targetRevision: meiot-shared-prd
+      ref: gitRepo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

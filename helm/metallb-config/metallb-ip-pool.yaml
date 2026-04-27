@@ -9,10 +9,16 @@ spec:
   - 192.168.1.200-192.168.1.250
 ---
 apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
+kind: L2Advertisement # there is other kind: BGP Mode (True Load Balancing) --> using BGP you need router support it
 metadata:
   name: example
   namespace: metallb-system
 spec:
   ipAddressPools:
   - first-pool
+
+# How it works (L2 Advertisement):
+# 1. External Client hits your Home Router's 1 Public IP.
+# 2. Home Router applies your NAT rule and forwards the packet to the MetalLB VIP (192.168.1.200).
+# 3. The Single Leader Node intercepts the packet because it advertised its MAC address via Layer 2 ARP.
+# 4. Kube-Proxy on that node takes the packet and routes it to the correct Pod in your cluster.
